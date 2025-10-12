@@ -121,6 +121,9 @@ All colors MUST be HSL.
 
   .gradient-warm {
     background: var(--gradient-warm);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .shadow-soft {
