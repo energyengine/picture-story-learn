@@ -55,7 +55,25 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('ElevenLabs API error:', response.status, errorText);
-      throw new Error(`Audio generation failed: ${response.status}`);
+      
+      let errorMessage = `Audio generation failed: ${response.status}`;
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.detail?.message) {
+          errorMessage = errorData.detail.message;
+        }
+      } catch (e) {
+        // If parsing fails, use the raw error text
+        errorMessage = errorText || errorMessage;
+      }
+      
+      return new Response(
+        JSON.stringify({ error: errorMessage }),
+        {
+          status: response.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Convert audio to base64
