@@ -24,11 +24,14 @@ export const Hero = () => {
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold text-balance leading-tight">
-            Learning Made{" "}
             <span className="gradient-hero bg-clip-text text-transparent">
-              Visual & Accessible
+              LexiVisual AI
             </span>
           </h1>
+
+          <p className="text-2xl md:text-3xl font-semibold text-foreground/90 mt-4">
+            Learning Made Visual & Accessible
+          </p>
 
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto text-balance">
             Transform educational content into pictorial, auditory, and multimodal formats tailored for dyslexic learners
