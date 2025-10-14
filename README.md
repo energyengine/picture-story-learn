@@ -1,73 +1,57 @@
-# Welcome to your Lovable project
+# 🌟 LexiVisual AI — Beyond Words, Into Vision
 
-## Project info
+### *Empowering Dyslexic Students by Converting Text into Comprehensible Visual Content*
 
-**URL**: https://lovable.dev/projects/4a6e2426-ce71-441b-8474-352f8862088f
+---
 
-## How can I edit this code?
+## 🧠 Overview
 
-There are several ways of editing your application.
+**LexiVisual AI** is an inclusive, AI-powered learning assistant designed to help **students with dyslexia** understand and retain educational content more effectively.  
+The platform automatically transforms textbook text into **simplified summaries, AI-generated images, and audio narration**, enabling multimodal learning that enhances comprehension and engagement.
 
-**Use Lovable**
+Built with **Microsoft Azure OpenAI Services**, **DALL·E**, and **Azure Cognitive Services**, LexiVisual AI redefines accessibility in education — turning reading into a vivid, inclusive, and personalized experience.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/4a6e2426-ce71-441b-8474-352f8862088f) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🚀 Features
 
-**Use your preferred IDE**
+- 🧩 **Text Simplification:** Uses Azure OpenAI (GPT-4 Turbo) to simplify complex educational text.  
+- 🎨 **AI Image Generation:** Converts simplified content into meaningful visuals with DALL·E.  
+- 🔊 **Audio Narration:** Uses Azure Cognitive Services to read content aloud.  
+- 💡 **Adaptive Learning:** Personalized interface for different dyslexia profiles (fonts, spacing, and color themes).  
+- 🌐 **PWA Ready:** Installable web app that works seamlessly online or offline.  
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🎯 Problem Statement
 
-Follow these steps:
+**LexiVisual AI: Empowering Dyslexic Students by Converting Text into Comprehensible Visual Content**
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Dyslexia affects millions of students worldwide, making traditional text-based learning difficult.  
+Existing tools lack personalization and multimodal learning capabilities, leaving many learners behind.  
+LexiVisual AI aims to bridge this gap by providing an AI-driven, inclusive solution that transforms complex text into **visual, auditory, and simplified formats**, making learning accessible for all.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+---
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 💡 Solution Description
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+LexiVisual AI leverages the power of AI to automatically convert educational text into **pictorial and spoken lessons** tailored to dyslexic learners.  
+By combining **Azure OpenAI GPT-4 Turbo**, **DALL·E**, and **Azure Speech Services**, it delivers a rich, multimodal learning experience that enhances understanding and retention.  
+The platform supports accessibility customization and provides teachers and parents with insights into student progress — helping every learner thrive.
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## ⚙️ Tech Stack
 
-**Use GitHub Codespaces**
+| Layer | Technology |
+|-------|-------------|
+| **Frontend** | React + Tailwind CSS + Vite |
+| **Backend** | Flask (Python) / Node.js (Express) |
+| **AI Services** | Azure OpenAI (GPT-4 Turbo, DALL·E) |
+| **Speech & Audio** | Azure Cognitive Services (Text-to-Speech) |
+| **Database** | Firebase Firestore / Azure Cosmos DB |
+| **Hosting** | Vercel (Frontend) + Azure App Service (Backend) |
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/4a6e2426-ce71-441b-8474-352f8862088f) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 🧩 Architecture
