@@ -40,20 +40,40 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an expert educational psychologist specializing in dyslexia assessment and learning support. 
-            Analyze the assessment responses and provide:
-            1. A compassionate, encouraging summary of the user's learning profile
-            2. Specific strengths identified from their responses
-            3. Areas where they might benefit from additional support
-            4. Personalized recommendations for learning strategies
-            5. Suggested tools and techniques from LexiVisual AI that would help them most
-            
-            Keep your tone warm, supportive, and empowering. Focus on abilities and potential, not limitations.
-            Structure your response with clear headings and bullet points for easy reading.`,
+            content: `You are an educational psychologist specializing in dyslexia and learning differences. 
+Analyze assessment responses and provide a clear, actionable report with a numerical score.
+Be supportive, specific, and use simple language.`,
           },
           {
             role: 'user',
-            content: `Please analyze these dyslexia screening assessment responses and provide personalized recommendations:\n\n${formattedAnswers}`,
+            content: `Analyze these dyslexia screening responses and provide a report in this EXACT format:
+
+**DYSLEXIA RISK SCORE: [0-100]/100**
+(0-30: Low risk, 31-60: Moderate risk, 61-100: High risk - may benefit from professional assessment)
+
+**LEARNING PROFILE:**
+[2-3 sentences describing the person's learning style in simple terms]
+
+**KEY STRENGTHS:**
+• [Strength 1]
+• [Strength 2]
+• [Strength 3]
+
+**AREAS FOR SUPPORT:**
+• [Area 1]
+• [Area 2]
+• [Area 3]
+
+**RECOMMENDED STRATEGIES:**
+1. [Simple, actionable strategy]
+2. [Simple, actionable strategy]
+3. [Simple, actionable strategy]
+
+**NEXT STEPS:**
+[Clear guidance on what to do next - 2-3 sentences]
+
+Assessment responses:
+${formattedAnswers}`,
           },
         ],
       }),

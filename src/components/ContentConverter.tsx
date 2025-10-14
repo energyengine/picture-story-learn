@@ -9,10 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 export const ContentConverter = () => {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [result, setResult] = useState<{
     summary: string;
     imagePrompt: string;
     generatedImage?: string;
+    audioContent?: string;
   } | null>(null);
   const { toast } = useToast();
 
@@ -125,13 +127,60 @@ export const ContentConverter = () => {
                     <Volume2 className="w-5 h-5 text-accent" />
                     Audio Narration
                   </h3>
-                  <Button variant="outline" className="w-full">
-                    <Volume2 className="mr-2 w-5 h-5" />
-                    Listen to Summary
-                  </Button>
-                  <p className="text-sm text-muted-foreground mt-3">
-                    Audio generation coming soon
-                  </p>
+                  {result.audioContent ? (
+                    <audio controls className="w-full">
+                      <source src={`data:audio/mpeg;base64,${result.audioContent}`} type="audio/mpeg" />
+                      Your browser does not support audio playback.
+                    </audio>
+                  ) : (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={async () => {
+                          setIsGeneratingAudio(true);
+                          try {
+                            const { data, error } = await supabase.functions.invoke("generate-audio", {
+                              body: { text: result.summary },
+                            });
+
+                            if (error) throw error;
+
+                            setResult({ ...result, audioContent: data.audioContent });
+                            toast({
+                              title: "Audio generated!",
+                              description: "You can now listen to the summary",
+                            });
+                          } catch (error: any) {
+                            console.error("Audio generation error:", error);
+                            toast({
+                              title: "Audio generation failed",
+                              description: error.message || "Please add ELEVENLABS_API_KEY in backend secrets",
+                              variant: "destructive",
+                            });
+                          } finally {
+                            setIsGeneratingAudio(false);
+                          }
+                        }}
+                        disabled={isGeneratingAudio}
+                      >
+                        {isGeneratingAudio ? (
+                          <>
+                            <Loader2 className="mr-2 w-5 h-5 animate-spin" />
+                            Generating Audio...
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="mr-2 w-5 h-5" />
+                            Generate Audio
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-sm text-muted-foreground mt-3">
+                        Click to generate audio narration
+                      </p>
+                    </>
+                  )}
                 </Card>
               </>
             ) : (

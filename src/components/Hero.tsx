@@ -38,11 +38,20 @@ export const Hero = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            <Button size="lg" className="text-lg px-8 group shadow-medium hover:shadow-large transition-all">
+            <Button 
+              size="lg" 
+              className="text-lg px-8 group shadow-medium hover:shadow-large transition-all"
+              onClick={() => document.getElementById('converter')?.scrollIntoView({ behavior: 'smooth' })}
+            >
               Try Content Converter
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="text-lg px-8"
+              onClick={() => document.getElementById('assessment')?.scrollIntoView({ behavior: 'smooth' })}
+            >
               Take Assessment Quiz
             </Button>
           </div>
