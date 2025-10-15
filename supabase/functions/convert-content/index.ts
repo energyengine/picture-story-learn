@@ -46,8 +46,22 @@ serve(async (req) => {
     });
 
     if (!summaryResponse.ok) {
-      console.error('Summary API error:', await summaryResponse.text());
-      throw new Error('Failed to generate summary');
+      const errorText = await summaryResponse.text();
+      console.error('Summary API error:', errorText);
+      
+      let errorMessage = 'Failed to generate summary';
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.type === 'payment_required') {
+          errorMessage = 'Lovable AI credits exhausted. Please add credits in Settings → Workspace → Usage to continue.';
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch (e) {
+        // Use default error message
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const summaryData = await summaryResponse.json();

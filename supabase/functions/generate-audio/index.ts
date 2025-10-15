@@ -59,11 +59,14 @@ serve(async (req) => {
       let errorMessage = `Audio generation failed: ${response.status}`;
       try {
         const errorData = JSON.parse(errorText);
-        if (errorData.detail?.message) {
+        if (errorData.detail?.status === 'quota_exceeded') {
+          errorMessage = 'ElevenLabs quota exceeded. You have insufficient credits for this request. Please upgrade your ElevenLabs plan or wait for quota reset.';
+        } else if (errorData.detail?.status === 'detected_unusual_activity') {
+          errorMessage = 'ElevenLabs detected unusual activity. Free tier disabled. Please upgrade to a paid ElevenLabs plan to continue.';
+        } else if (errorData.detail?.message) {
           errorMessage = errorData.detail.message;
         }
       } catch (e) {
-        // If parsing fails, use the raw error text
         errorMessage = errorText || errorMessage;
       }
       
