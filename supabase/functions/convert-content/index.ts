@@ -26,48 +26,21 @@ serve(async (req) => {
     const systemPromptSummary = 'You are an expert educational content adapter for dyslexic learners. Create clear, concise summaries using simple words, short sentences, and concrete examples. Use visual language and break complex ideas into digestible chunks.';
     const userPromptSummary = `Adapt this educational content for dyslexic learners. Make it visual, concrete, and easy to understand:\n\n${text}`;
 
-    // First, create a dyslexia-friendly summary with fallback
-    let summaryResponse;
-    let usedFreeModelForSummary = false;
-
-    try {
-      summaryResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'deepseek/deepseek-r1',
-          messages: [
-            { role: 'system', content: systemPromptSummary },
-            { role: 'user', content: userPromptSummary },
-          ],
-        }),
-      });
-
-      if (!summaryResponse.ok) {
-        throw new Error('Paid model failed for summary');
-      }
-    } catch (error) {
-      console.log('Paid model failed for summary, retrying with free model:', error);
-      usedFreeModelForSummary = true;
-
-      summaryResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'deepseek/deepseek-r1:free',
-          messages: [
-            { role: 'system', content: systemPromptSummary },
-            { role: 'user', content: userPromptSummary },
-          ],
-        }),
-      });
-    }
+    // Create a dyslexia-friendly summary using free model
+    const summaryResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'deepseek/deepseek-r1:free',
+        messages: [
+          { role: 'system', content: systemPromptSummary },
+          { role: 'user', content: userPromptSummary },
+        ],
+      }),
+    });
 
     if (!summaryResponse.ok) {
       const errorText = await summaryResponse.text();
@@ -92,48 +65,21 @@ serve(async (req) => {
     const systemPromptImage = 'You are an expert at creating visual learning prompts. Create detailed, educational image prompts that help dyslexic learners understand concepts through visual metaphors.';
     const userPromptImage = `Create a detailed image generation prompt for an educational illustration that helps explain this concept:\n\n${summary}\n\nThe image should be clear, colorful, and visually explain the key ideas.`;
 
-    // Create an image prompt based on the summary with fallback
-    let imagePromptResponse;
-    let usedFreeModelForImagePrompt = false;
-
-    try {
-      imagePromptResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'deepseek/deepseek-r1',
-          messages: [
-            { role: 'system', content: systemPromptImage },
-            { role: 'user', content: userPromptImage },
-          ],
-        }),
-      });
-
-      if (!imagePromptResponse.ok) {
-        throw new Error('Paid model failed for image prompt');
-      }
-    } catch (error) {
-      console.log('Paid model failed for image prompt, retrying with free model:', error);
-      usedFreeModelForImagePrompt = true;
-
-      imagePromptResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'deepseek/deepseek-r1:free',
-          messages: [
-            { role: 'system', content: systemPromptImage },
-            { role: 'user', content: userPromptImage },
-          ],
-        }),
-      });
-    }
+    // Create an image prompt based on the summary using free model
+    const imagePromptResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'deepseek/deepseek-r1:free',
+        messages: [
+          { role: 'system', content: systemPromptImage },
+          { role: 'user', content: userPromptImage },
+        ],
+      }),
+    });
 
     if (!imagePromptResponse.ok) {
       console.error('Image prompt API error:', await imagePromptResponse.text());
@@ -143,48 +89,21 @@ serve(async (req) => {
     const imagePromptData = await imagePromptResponse.json();
     const imagePrompt = imagePromptData.choices[0].message.content;
 
-    // Generate the actual image using OpenRouter's Gemini Nano Banana
-    let imageResponse;
-    let usedFreeModelForImage = false;
-
-    try {
-      imageResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-image-preview',
-          messages: [
-            { role: 'user', content: imagePrompt },
-          ],
-          modalities: ['image', 'text'],
-        }),
-      });
-
-      if (!imageResponse.ok) {
-        throw new Error('Paid model failed for image generation');
-      }
-    } catch (error) {
-      console.log('Paid model failed for image generation, retrying with free model:', error);
-      usedFreeModelForImage = true;
-
-      imageResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-image-preview:free',
-          messages: [
-            { role: 'user', content: imagePrompt },
-          ],
-          modalities: ['image', 'text'],
-        }),
-      });
-    }
+    // Generate the actual image using OpenRouter's Gemini free model
+    const imageResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image-preview:free',
+        messages: [
+          { role: 'user', content: imagePrompt },
+        ],
+        modalities: ['image', 'text'],
+      }),
+    });
 
     let generatedImage = null;
     if (imageResponse.ok) {

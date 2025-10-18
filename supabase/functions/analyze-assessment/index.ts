@@ -61,48 +61,21 @@ Be supportive, specific, and use simple language.`;
 Assessment responses:
 ${formattedAnswers}`;
 
-    // Try with paid model first, fallback to free if it fails
-    let analysisResponse;
-    let usedFreeModel = false;
-
-    try {
-      analysisResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'deepseek/deepseek-r1',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-        }),
-      });
-
-      if (!analysisResponse.ok) {
-        throw new Error('Paid model failed');
-      }
-    } catch (error) {
-      console.log('Paid model failed, retrying with free model:', error);
-      usedFreeModel = true;
-      
-      analysisResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'deepseek/deepseek-r1:free',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-        }),
-      });
-    }
+    // Use free model only
+    const analysisResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'deepseek/deepseek-r1:free',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+      }),
+    });
 
     if (!analysisResponse.ok) {
       if (analysisResponse.status === 429) {
