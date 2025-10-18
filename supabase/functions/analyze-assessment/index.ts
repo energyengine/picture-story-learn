@@ -18,9 +18,9 @@ serve(async (req) => {
       throw new Error('Assessment answers are required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+    if (!OPENROUTER_API_KEY) {
+      throw new Error('OPENROUTER_API_KEY is not configured');
     }
 
     // Format answers for analysis
@@ -28,25 +28,11 @@ serve(async (req) => {
       .map(([question, answer]) => `Q: ${question}\nA: ${answer}`)
       .join('\n\n');
 
-    // Analyze the assessment using Lovable AI
-    const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an educational psychologist specializing in dyslexia and learning differences. 
+    const systemPrompt = `You are an educational psychologist specializing in dyslexia and learning differences. 
 Analyze assessment responses and provide a clear, actionable report with a numerical score.
-Be supportive, specific, and use simple language.`,
-          },
-          {
-            role: 'user',
-            content: `Analyze these dyslexia screening responses and provide a report in this EXACT format:
+Be supportive, specific, and use simple language.`;
+
+    const userPrompt = `Analyze these dyslexia screening responses and provide a report in this EXACT format:
 
 **DYSLEXIA RISK SCORE: [0-100]/100**
 (0-30: Low risk, 31-60: Moderate risk, 61-100: High risk - may benefit from professional assessment)
@@ -73,11 +59,50 @@ Be supportive, specific, and use simple language.`,
 [Clear guidance on what to do next - 2-3 sentences]
 
 Assessment responses:
-${formattedAnswers}`,
-          },
-        ],
-      }),
-    });
+${formattedAnswers}`;
+
+    // Try with paid model first, fallback to free if it fails
+    let analysisResponse;
+    let usedFreeModel = false;
+
+    try {
+      analysisResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'deepseek/deepseek-r1',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+        }),
+      });
+
+      if (!analysisResponse.ok) {
+        throw new Error('Paid model failed');
+      }
+    } catch (error) {
+      console.log('Paid model failed, retrying with free model:', error);
+      usedFreeModel = true;
+      
+      analysisResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'deepseek/deepseek-r1:free',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+        }),
+      });
+    }
 
     if (!analysisResponse.ok) {
       if (analysisResponse.status === 429) {

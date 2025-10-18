@@ -18,32 +18,56 @@ serve(async (req) => {
       throw new Error('Text is required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+    if (!OPENROUTER_API_KEY) {
+      throw new Error('OPENROUTER_API_KEY is not configured');
     }
 
-    // First, create a dyslexia-friendly summary
-    const summaryResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert educational content adapter for dyslexic learners. Create clear, concise summaries using simple words, short sentences, and concrete examples. Use visual language and break complex ideas into digestible chunks.',
-          },
-          {
-            role: 'user',
-            content: `Adapt this educational content for dyslexic learners. Make it visual, concrete, and easy to understand:\n\n${text}`,
-          },
-        ],
-      }),
-    });
+    const systemPromptSummary = 'You are an expert educational content adapter for dyslexic learners. Create clear, concise summaries using simple words, short sentences, and concrete examples. Use visual language and break complex ideas into digestible chunks.';
+    const userPromptSummary = `Adapt this educational content for dyslexic learners. Make it visual, concrete, and easy to understand:\n\n${text}`;
+
+    // First, create a dyslexia-friendly summary with fallback
+    let summaryResponse;
+    let usedFreeModelForSummary = false;
+
+    try {
+      summaryResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'deepseek/deepseek-r1',
+          messages: [
+            { role: 'system', content: systemPromptSummary },
+            { role: 'user', content: userPromptSummary },
+          ],
+        }),
+      });
+
+      if (!summaryResponse.ok) {
+        throw new Error('Paid model failed for summary');
+      }
+    } catch (error) {
+      console.log('Paid model failed for summary, retrying with free model:', error);
+      usedFreeModelForSummary = true;
+
+      summaryResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'deepseek/deepseek-r1:free',
+          messages: [
+            { role: 'system', content: systemPromptSummary },
+            { role: 'user', content: userPromptSummary },
+          ],
+        }),
+      });
+    }
 
     if (!summaryResponse.ok) {
       const errorText = await summaryResponse.text();
@@ -52,9 +76,7 @@ serve(async (req) => {
       let errorMessage = 'Failed to generate summary';
       try {
         const errorData = JSON.parse(errorText);
-        if (errorData.type === 'payment_required') {
-          errorMessage = 'Lovable AI credits exhausted. Please add credits in Settings → Workspace → Usage to continue.';
-        } else if (errorData.message) {
+        if (errorData.message) {
           errorMessage = errorData.message;
         }
       } catch (e) {
@@ -67,27 +89,51 @@ serve(async (req) => {
     const summaryData = await summaryResponse.json();
     const summary = summaryData.choices[0].message.content;
 
-    // Create an image prompt based on the summary
-    const imagePromptResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert at creating visual learning prompts. Create detailed, educational image prompts that help dyslexic learners understand concepts through visual metaphors.',
-          },
-          {
-            role: 'user',
-            content: `Create a detailed image generation prompt for an educational illustration that helps explain this concept:\n\n${summary}\n\nThe image should be clear, colorful, and visually explain the key ideas.`,
-          },
-        ],
-      }),
-    });
+    const systemPromptImage = 'You are an expert at creating visual learning prompts. Create detailed, educational image prompts that help dyslexic learners understand concepts through visual metaphors.';
+    const userPromptImage = `Create a detailed image generation prompt for an educational illustration that helps explain this concept:\n\n${summary}\n\nThe image should be clear, colorful, and visually explain the key ideas.`;
+
+    // Create an image prompt based on the summary with fallback
+    let imagePromptResponse;
+    let usedFreeModelForImagePrompt = false;
+
+    try {
+      imagePromptResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'deepseek/deepseek-r1',
+          messages: [
+            { role: 'system', content: systemPromptImage },
+            { role: 'user', content: userPromptImage },
+          ],
+        }),
+      });
+
+      if (!imagePromptResponse.ok) {
+        throw new Error('Paid model failed for image prompt');
+      }
+    } catch (error) {
+      console.log('Paid model failed for image prompt, retrying with free model:', error);
+      usedFreeModelForImagePrompt = true;
+
+      imagePromptResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'deepseek/deepseek-r1:free',
+          messages: [
+            { role: 'system', content: systemPromptImage },
+            { role: 'user', content: userPromptImage },
+          ],
+        }),
+      });
+    }
 
     if (!imagePromptResponse.ok) {
       console.error('Image prompt API error:', await imagePromptResponse.text());
@@ -97,32 +143,9 @@ serve(async (req) => {
     const imagePromptData = await imagePromptResponse.json();
     const imagePrompt = imagePromptData.choices[0].message.content;
 
-    // Generate the actual image using the Nano banana model
-    const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: imagePrompt,
-          },
-        ],
-        modalities: ['image', 'text'],
-      }),
-    });
-
-    if (!imageResponse.ok) {
-      console.error('Image generation API error:', await imageResponse.text());
-      throw new Error('Failed to generate image');
-    }
-
-    const imageData = await imageResponse.json();
-    const generatedImage = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    // Note: DeepSeek doesn't support image generation, keeping this as null
+    // Users will need a separate image generation service for this feature
+    const generatedImage = null;
 
     return new Response(
       JSON.stringify({
