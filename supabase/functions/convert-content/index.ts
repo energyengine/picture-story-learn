@@ -143,9 +143,60 @@ serve(async (req) => {
     const imagePromptData = await imagePromptResponse.json();
     const imagePrompt = imagePromptData.choices[0].message.content;
 
-    // Note: DeepSeek doesn't support image generation, keeping this as null
-    // Users will need a separate image generation service for this feature
-    const generatedImage = null;
+    // Generate the actual image using OpenRouter's Gemini Nano Banana
+    let imageResponse;
+    let usedFreeModelForImage = false;
+
+    try {
+      imageResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash-image-preview',
+          messages: [
+            { role: 'user', content: imagePrompt },
+          ],
+          modalities: ['image', 'text'],
+        }),
+      });
+
+      if (!imageResponse.ok) {
+        throw new Error('Paid model failed for image generation');
+      }
+    } catch (error) {
+      console.log('Paid model failed for image generation, retrying with free model:', error);
+      usedFreeModelForImage = true;
+
+      imageResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash-image-preview:free',
+          messages: [
+            { role: 'user', content: imagePrompt },
+          ],
+          modalities: ['image', 'text'],
+        }),
+      });
+    }
+
+    let generatedImage = null;
+    if (imageResponse.ok) {
+      try {
+        const imageData = await imageResponse.json();
+        generatedImage = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      } catch (e) {
+        console.error('Failed to parse image response:', e);
+      }
+    } else {
+      console.error('Image generation failed:', await imageResponse.text());
+    }
 
     return new Response(
       JSON.stringify({
